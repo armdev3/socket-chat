@@ -24,10 +24,12 @@ io.on('connection', (client) => {
      
    client.join(data.sala);
 
-   let personas = usuarios.agregarPersona(client.id, data.nombre, data.sala);
+  
+   usuarios.agregarPersona(client.id, data.nombre, data.sala);
 
    //definimos nuestro evento y llamamos a  la funcion getPersonas que obtiene todas la personas
    client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonasPorSala(data.sala));//emite a todas las personas del chat
+   client.broadcast.to(data.sala).emit('crearMensaje',crearMensaje('Administrador',` ${data.nombre} Se unio`));
 
 
    if (typeof callback === 'function') {
@@ -35,12 +37,15 @@ io.on('connection', (client) => {
    }
 
 
-   client.on('crearMensaje', (data)=>{
+   client.on('crearMensaje', (data, callback)=>{
 
     let persona = usuarios.getPersona(client.id);
 
     let mensaje = crearMensaje(persona.nombre, data.mensaje);
      client.broadcast.to(persona.sala).emit('crearMensaje',mensaje);
+     
+
+     callback(mensaje);
 
    });
 
@@ -49,6 +54,8 @@ io.on('connection', (client) => {
    client.on('mensajePrivado', data=>{
     let persona = usuarios.getPersona(client.id);
     client.broadcast.to(data.para).emit('mensajePrivado', crearMensaje( persona.nombre, data.mensaje));//enviar mensajePrivado con  client.broadcast.to().emit(), data.para es un para añadir un parametro se puede llamar como queramo ese parametro
+   
+
 
    })
 
